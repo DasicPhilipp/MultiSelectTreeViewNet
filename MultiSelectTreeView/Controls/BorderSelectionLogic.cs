@@ -1,298 +1,254 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace System.Windows.Controls
-{
-	internal class BorderSelectionLogic : IDisposable
-	{
-		#region Private fields
+namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+    internal class BorderSelectionLogic : IDisposable {
+        #region Private fields
 
-		private MultiSelectTreeView treeView;
-		private readonly Border border;
-		private readonly ScrollViewer scrollViewer;
-		private readonly ItemsPresenter content;
-		private readonly IEnumerable<MultiSelectTreeViewItem> items;
+        private MultiSelectTreeView treeView;
+        private readonly Border border;
+        private readonly ScrollViewer scrollViewer;
+        private readonly ItemsPresenter content;
 
-		private bool isFirstMove;
-		private bool mouseDown;
-		private Point startPoint;
-		private DateTime lastScrollTime;
-		private HashSet<object> initialSelection;
+        private bool isFirstMove;
+        private bool mouseDown;
+        private Point startPoint;
+        private DateTime lastScrollTime;
+        private HashSet<object> initialSelection;
 
-		#endregion Private fields
+        public static (int millis, int lines) AutoScrollData = (25, 2);
 
-		#region Constructor
+        #endregion Private fields
 
-		public BorderSelectionLogic(MultiSelectTreeView treeView, Border selectionBorder, ScrollViewer scrollViewer, ItemsPresenter content, IEnumerable<MultiSelectTreeViewItem> items)
-		{
-			if (treeView == null)
-			{
-				throw new ArgumentNullException("treeView");
-			}
-			if (selectionBorder == null)
-			{
-				throw new ArgumentNullException("selectionBorder");
-			}
-			if (scrollViewer == null)
-			{
-				throw new ArgumentNullException("scrollViewer");
-			}
-			if (content == null)
-			{
-				throw new ArgumentNullException("content");
-			}
-			if (items == null)
-			{
-				throw new ArgumentNullException("items");
-			}
+        #region Constructor
 
-			this.treeView = treeView;
-			this.border = selectionBorder;
-			this.scrollViewer = scrollViewer;
-			this.content = content;
-			this.items = items;
+        public BorderSelectionLogic(MultiSelectTreeView treeView, Border selectionBorder, ScrollViewer scrollViewer, ItemsPresenter content) {
+            this.treeView = treeView ?? throw new ArgumentNullException(nameof(treeView));
+            this.border = selectionBorder ?? throw new ArgumentNullException(nameof(selectionBorder));
+            this.scrollViewer = scrollViewer ?? throw new ArgumentNullException(nameof(scrollViewer));
+            this.content = content ?? throw new ArgumentNullException(nameof(content));
 
-			treeView.MouseDown += OnMouseDown;
-			treeView.MouseMove += OnMouseMove;
-			treeView.MouseUp += OnMouseUp;
-			treeView.KeyDown += OnKeyDown;
-			treeView.KeyUp += OnKeyUp;
-		}
+            treeView.MouseDown += this.OnMouseDown;
+            treeView.MouseMove += this.OnMouseMove;
+            treeView.MouseUp += this.OnMouseUp;
+            treeView.KeyDown += this.OnKeyDown;
+            treeView.KeyUp += this.OnKeyUp;
+        }
 
-		#endregion Constructor
+        #endregion Constructor
 
-		#region Public methods
+        #region Public methods
 
-		public void Dispose()
-		{
-			if (treeView != null)
-			{
-				treeView.MouseDown -= OnMouseDown;
-				treeView.MouseMove -= OnMouseMove;
-				treeView.MouseUp -= OnMouseUp;
-				treeView.KeyDown -= OnKeyDown;
-				treeView.KeyUp -= OnKeyUp;
-				treeView = null;
-			}
-			GC.SuppressFinalize(this);
-		}
+        public void Dispose() {
+            if (this.treeView != null) {
+                this.treeView.MouseDown -= this.OnMouseDown;
+                this.treeView.MouseMove -= this.OnMouseMove;
+                this.treeView.MouseUp -= this.OnMouseUp;
+                this.treeView.KeyDown -= this.OnKeyDown;
+                this.treeView.KeyUp -= this.OnKeyUp;
+                this.treeView = null;
+            }
 
-		#endregion Public methods
+            GC.SuppressFinalize(this);
+        }
 
-		#region Methods
+        #endregion Public methods
 
-		private void OnMouseDown(object sender, MouseButtonEventArgs e)
-		{
-			mouseDown = true;
-			startPoint = Mouse.GetPosition(content);
+        #region Methods
 
-			// Debug.WriteLine("Initialize drwawing");
-			isFirstMove = true;
-			// Capture the mouse right now so that the MouseUp event will not be missed
-			Mouse.Capture(treeView);
+        private void OnMouseDown(object sender, MouseButtonEventArgs e) {
+            this.mouseDown = true;
+            this.startPoint = Mouse.GetPosition(this.content);
 
-			initialSelection = new HashSet<object>(treeView.SelectedItems.Cast<object>());
-		}
+            // Debug.WriteLine("Initialize drwawing");
+            this.isFirstMove = true;
+            // Capture the mouse right now so that the MouseUp event will not be missed
+            Mouse.Capture(this.treeView);
 
-		private void OnMouseMove(object sender, MouseEventArgs e)
-		{
-			if (mouseDown)
-			{
-				if (DateTime.UtcNow > lastScrollTime.AddMilliseconds(100))
-				{
-					Point currentPointWin = Mouse.GetPosition(scrollViewer);
-					if (currentPointWin.Y < 16)
-					{
-						scrollViewer.LineUp();
-						scrollViewer.UpdateLayout();
-						lastScrollTime = DateTime.UtcNow;
-					}
-					if (currentPointWin.Y > scrollViewer.ActualHeight - 16)
-					{
-						scrollViewer.LineDown();
-						scrollViewer.UpdateLayout();
-						lastScrollTime = DateTime.UtcNow;
-					}
-				}
+            IList selection = this.treeView.SelectedItems;
+            this.initialSelection = selection == null ? new HashSet<object>() : new HashSet<object>(selection.Cast<object>());
+        }
 
-				Point currentPoint = Mouse.GetPosition(content);
-				double width = currentPoint.X - startPoint.X + 1;
-				double height = currentPoint.Y - startPoint.Y + 1;
-				double left = startPoint.X;
-				double top = startPoint.Y;
+        private void OnMouseMove(object sender, MouseEventArgs e) {
+            if (this.mouseDown) {
+                if (DateTime.UtcNow > this.lastScrollTime.AddMilliseconds(AutoScrollData.millis)) {
+                    Point currentPointWin = Mouse.GetPosition(this.scrollViewer);
+                    if (currentPointWin.Y < 16) {
+                        for (int i = AutoScrollData.lines; i > 0; i--)
+                            this.scrollViewer.LineUp();
+                        this.scrollViewer.UpdateLayout();
+                        this.lastScrollTime = DateTime.UtcNow;
+                    }
 
-				if (isFirstMove)
-				{
-					if (Math.Abs(width) <= SystemParameters.MinimumHorizontalDragDistance &&
-						Math.Abs(height) <= SystemParameters.MinimumVerticalDragDistance)
-					{
-						return;
-					}
+                    if (currentPointWin.Y > this.scrollViewer.ActualHeight - 16) {
+                        for (int i = AutoScrollData.lines; i > 0; i--)
+                            this.scrollViewer.LineDown();
+                        this.scrollViewer.UpdateLayout();
+                        this.lastScrollTime = DateTime.UtcNow;
+                    }
+                }
 
-					isFirstMove = false;
-					if (!SelectionMultiple.IsControlKeyDown)
-					{
-						if (!treeView.ClearSelectionByRectangle())
-						{
-							EndAction();
-							return;
-						}
-					}
-				}
+                Point currentPoint = Mouse.GetPosition(this.content);
+                double width = currentPoint.X - this.startPoint.X + 1;
+                double height = currentPoint.Y - this.startPoint.Y + 1;
+                double left = this.startPoint.X;
+                double top = this.startPoint.Y;
 
-				// Debug.WriteLine(string.Format("Drawing: {0};{1};{2};{3}",startPoint.X,startPoint.Y,width,height));
-				if (width < 1)
-				{
-					width = Math.Abs(width - 1) + 1;
-					left = startPoint.X - width + 1;
-				}
+                if (this.isFirstMove) {
+                    if (Math.Abs(width) <= SystemParameters.MinimumHorizontalDragDistance && Math.Abs(height) <= SystemParameters.MinimumVerticalDragDistance) {
+                        return;
+                    }
 
-				if (height < 1)
-				{
-					height = Math.Abs(height - 1) + 1;
-					top = startPoint.Y - height + 1;
-				}
+                    this.isFirstMove = false;
+                    if (!SelectionMultiple.IsControlKeyDown) {
+                        if (!this.treeView.ClearSelectionByRectangle()) {
+                            this.EndAction();
+                            return;
+                        }
+                    }
+                }
 
-				border.Width = width;
-				Canvas.SetLeft(border, left);
-				border.Height = height;
-				Canvas.SetTop(border, top);
+                // Debug.WriteLine(string.Format("Drawing: {0};{1};{2};{3}",startPoint.X,startPoint.Y,width,height));
+                if (width < 1) {
+                    width = Math.Abs(width - 1) + 1;
+                    left = this.startPoint.X - width + 1;
+                }
 
-				border.Visibility = Visibility.Visible;
+                if (height < 1) {
+                    height = Math.Abs(height - 1) + 1;
+                    top = this.startPoint.Y - height + 1;
+                }
 
-				double right = left + width - 1;
-				double bottom = top + height - 1;
+                this.border.Width = width;
+                Canvas.SetLeft(this.border, left);
+                this.border.Height = height;
+                Canvas.SetTop(this.border, top);
 
-				// Debug.WriteLine(string.Format("left:{1};right:{2};top:{3};bottom:{4}", null, left, right, top, bottom));
-				SelectionMultiple selection = (SelectionMultiple) treeView.Selection;
-				bool foundFocusItem = false;
-				foreach (var item in items)
-				{
-					FrameworkElement itemContent = (FrameworkElement) item.Template.FindName("headerBorder", item);
-					Point p = itemContent.TransformToAncestor(content).Transform(new Point());
-					double itemLeft = p.X;
-					double itemRight = p.X + itemContent.ActualWidth - 1;
-					double itemTop = p.Y;
-					double itemBottom = p.Y + itemContent.ActualHeight - 1;
+                this.border.Visibility = Visibility.Visible;
 
-					// Debug.WriteLine(string.Format("element:{0};itemleft:{1};itemright:{2};itemtop:{3};itembottom:{4}",item.DataContext,itemLeft,itemRight,itemTop,itemBottom));
+                double right = left + width - 1;
+                double bottom = top + height - 1;
 
-					// Compute the current input states for determining the new selection state of the item
-					bool intersect = !(itemLeft > right || itemRight < left || itemTop > bottom || itemBottom < top);
-					bool initialSelected = initialSelection != null && initialSelection.Contains(item.DataContext);
-					bool ctrl = SelectionMultiple.IsControlKeyDown;
+                // Debug.WriteLine(string.Format("left:{1};right:{2};top:{3};bottom:{4}", null, left, right, top, bottom));
+                SelectionMultiple selection = (SelectionMultiple) this.treeView.Selection;
+                bool foundFocusItem = false;
 
-					// Decision matrix:
-					// If the Ctrl key is pressed, each intersected item will be toggled from its initial selection.
-					// Without the Ctrl key, each intersected item is selected, others are deselected.
-					//
-					// newSelected
-					// ─────────┬───────────────────────
-					//          │ intersect
-					//          │  0        │  1
-					//          ├───────────┴───────────
-					//          │ initial
-					//          │  0  │  1  │  0  │  1
-					// ─────────┼─────┼─────┼─────┼─────
-					// ctrl  0  │  0  │  0  │  1  │  1   = intersect
-					// ─────────┼─────┼─────┼─────┼─────
-					//       1  │  0  │  1  │  1  │  0   = intersect XOR initial
-					//
-					bool newSelected = intersect ^ (initialSelected && ctrl);
+                IList selectedItems = this.treeView.SelectedItems;
+                foreach (MultiSelectTreeViewItem item in MultiSelectTreeView.GetEntireTreeRecursive(this.treeView, false, false)) {
+                    FrameworkElement itemContent = (FrameworkElement) item.Template.FindName("headerBorder", item);
+                    Point p = itemContent.TransformToAncestor(this.content).Transform(new Point());
+                    double itemLeft = p.X;
+                    double itemRight = p.X + itemContent.ActualWidth - 1;
+                    double itemTop = p.Y;
+                    double itemBottom = p.Y + itemContent.ActualHeight - 1;
 
-					// The new selection state for this item has been determined. Apply it.
-					if (newSelected)
-					{
-						// The item shall be selected
-						if (!treeView.SelectedItems.Contains(item.DataContext))
-						{
-							// The item is not currently selected. Try to select it.
-							if (!selection.SelectByRectangle(item))
-							{
-								if (selection.LastCancelAll)
-								{
-									EndAction();
-									return;
-								}
-							}
-						}
-					}
-					else
-					{
-						// The item shall be deselected
-						if (treeView.SelectedItems.Contains(item.DataContext))
-						{
-							// The item is currently selected. Try to deselect it.
-							if (!selection.DeselectByRectangle(item))
-							{
-								if (selection.LastCancelAll)
-								{
-									EndAction();
-									return;
-								}
-							}
-						}
-					}
+                    // Debug.WriteLine(string.Format("element:{0};itemleft:{1};itemright:{2};itemtop:{3};itembottom:{4}",item.DataContext,itemLeft,itemRight,itemTop,itemBottom));
 
-					// Always focus and bring into view the item under the mouse cursor
-					if (!foundFocusItem &&
-						currentPoint.X >= itemLeft && currentPoint.X <= itemRight &&
-						currentPoint.Y >= itemTop && currentPoint.Y <= itemBottom)
-					{
-						FocusHelper.Focus(item, true);
-						scrollViewer.UpdateLayout();
-						foundFocusItem = true;
-					}
-				}
+                    // Compute the current input states for determining the new selection state of the item
+                    bool intersect = !(itemLeft > right || itemRight < left || itemTop > bottom || itemBottom < top);
+                    bool initialSelected = this.initialSelection != null && this.initialSelection.Contains(item.DataContext);
+                    bool ctrl = SelectionMultiple.IsControlKeyDown;
 
-				if (e != null)
-				{
-					e.Handled = true;
-				}
-			}
-		}
+                    // Decision matrix:
+                    // If the Ctrl key is pressed, each intersected item will be toggled from its initial selection.
+                    // Without the Ctrl key, each intersected item is selected, others are deselected.
+                    //
+                    // newSelected
+                    // ─────────┬───────────────────────
+                    //          │ intersect
+                    //          │  0        │  1
+                    //          ├───────────┴───────────
+                    //          │ initial
+                    //          │  0  │  1  │  0  │  1
+                    // ─────────┼─────┼─────┼─────┼─────
+                    // ctrl  0  │  0  │  0  │  1  │  1   = intersect
+                    // ─────────┼─────┼─────┼─────┼─────
+                    //       1  │  0  │  1  │  1  │  0   = intersect XOR initial
+                    //
+                    bool newSelected = intersect ^ (initialSelected && ctrl);
 
-		private void OnMouseUp(object sender, MouseButtonEventArgs e)
-		{
-			EndAction();
+                    // The new selection state for this item has been determined. Apply it.
+                    if (newSelected) {
+                        // The item shall be selected
+                        if (selectedItems == null || !selectedItems.Contains(item.DataContext)) {
+                            // The item is not currently selected. Try to select it.
+                            if (!selection.SelectByRectangle(item)) {
+                                if (selection.LastCancelAll) {
+                                    this.EndAction();
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        // The item shall be deselected
+                        if (selectedItems != null && selectedItems.Contains(item.DataContext)) {
+                            // The item is currently selected. Try to deselect it.
+                            if (!selection.DeselectByRectangle(item)) {
+                                if (selection.LastCancelAll) {
+                                    this.EndAction();
+                                    return;
+                                }
+                            }
+                        }
+                    }
 
-			// Clear selection if this was a non-ctrl click outside of any item (i.e. in the background)
-			Point currentPoint = e.GetPosition(content);
-			double width = currentPoint.X - startPoint.X + 1;
-			double height = currentPoint.Y - startPoint.Y + 1;
-			if (Math.Abs(width) <= SystemParameters.MinimumHorizontalDragDistance &&
-				Math.Abs(height) <= SystemParameters.MinimumVerticalDragDistance &&
-				!SelectionMultiple.IsControlKeyDown)
-			{
-				treeView.ClearSelection();
-			}
-		}
+                    // Always focus and bring into view the item under the mouse cursor
+                    if (!foundFocusItem &&
+                        currentPoint.X >= itemLeft && currentPoint.X <= itemRight &&
+                        currentPoint.Y >= itemTop && currentPoint.Y <= itemBottom) {
+                        FocusHelper.Focus(item, true);
+                        this.scrollViewer.UpdateLayout();
+                        foundFocusItem = true;
+                    }
+                }
 
-		private void OnKeyDown(object sender, KeyEventArgs e)
-		{
-			// The mouse move handler reads the Ctrl key so is dependent on it.
-			// If the key state has changed, the selection needs to be updated.
-			OnMouseMove(null, null);
-		}
+                if (e != null) {
+                    e.Handled = true;
+                }
+            }
+        }
 
-		private void OnKeyUp(object sender, KeyEventArgs e)
-		{
-			// The mouse move handler reads the Ctrl key so is dependent on it.
-			// If the key state has changed, the selection needs to be updated.
-			OnMouseMove(null, null);
-		}
+        private void OnMouseUp(object sender, MouseButtonEventArgs e) {
+            this.EndAction();
 
-		private void EndAction()
-		{
-			Mouse.Capture(null);
-			mouseDown = false;
-			border.Visibility = Visibility.Collapsed;
-			initialSelection = null;
+            // Clear selection if this was a non-ctrl click outside of any item (i.e. in the background)
+            Point currentPoint = e.GetPosition(this.content);
+            double width = currentPoint.X - this.startPoint.X + 1;
+            double height = currentPoint.Y - this.startPoint.Y + 1;
+            if (Math.Abs(width) <= SystemParameters.MinimumHorizontalDragDistance &&
+                Math.Abs(height) <= SystemParameters.MinimumVerticalDragDistance &&
+                !SelectionMultiple.IsControlKeyDown) {
+                this.treeView.ClearSelection();
+            }
+        }
 
-			// Debug.WriteLine("End drawing");
-		}
+        private void OnKeyDown(object sender, KeyEventArgs e) {
+            // The mouse move handler reads the Ctrl key so is dependent on it.
+            // If the key state has changed, the selection needs to be updated.
+            this.OnMouseMove(null, null);
+        }
 
-		#endregion Methods
-	}
+        private void OnKeyUp(object sender, KeyEventArgs e) {
+            // The mouse move handler reads the Ctrl key so is dependent on it.
+            // If the key state has changed, the selection needs to be updated.
+            this.OnMouseMove(null, null);
+        }
+
+        private void EndAction() {
+            Mouse.Capture(null);
+            this.mouseDown = false;
+            this.border.Visibility = Visibility.Collapsed;
+            this.initialSelection = null;
+
+            // Debug.WriteLine("End drawing");
+        }
+
+        #endregion Methods
+    }
 }
