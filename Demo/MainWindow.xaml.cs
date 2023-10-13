@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Demo.ViewModel;
 
 namespace Demo
@@ -19,23 +11,23 @@ namespace Demo
 	{
 		public MainWindow()
 		{
-			InitializeComponent();
-			ShowSecondCheck_Checked(null, null);
+            this.InitializeComponent();
+            this.ShowSecondCheck_Checked(null, null);
 
 			// Create some example nodes to play with
-			var rootNode = new TreeItemViewModel(null, false) { DisplayName = "rootNode" };
-			var node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true };
-			var node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2" };
-			var node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!" };
-			var node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false };
-			var node13 = new TreeItemViewModel(node1, false) { DisplayName = "element13" };
-			var node131 = new TreeItemViewModel(node13, false) { DisplayName = "element131" };
-			var node132 = new TreeItemViewModel(node13, false) { DisplayName = "element132" };
-			var node14 = new TreeItemViewModel(node1, false) { DisplayName = "element14 with colours" };
-			var colorNode1 = new ColorItemViewModel(node14, false) { Color = Colors.Aqua, IsEditable = true };
-			var colorNode2 = new ColorItemViewModel(node14, false) { Color = Colors.ForestGreen };
-			var colorNode3 = new ColorItemViewModel(node14, false) { Color = Colors.LightSalmon };
-			var node15 = new TreeItemViewModel(node1, true) { DisplayName = "element15 (lazy loading)" };
+			TreeItemViewModel rootNode = new TreeItemViewModel(null, false) { DisplayName = "rootNode" };
+			TreeItemViewModel node1 = new TreeItemViewModel(rootNode, false) { DisplayName = "element1 (editable)", IsEditable = true };
+			TreeItemViewModel node2 = new TreeItemViewModel(rootNode, false) { DisplayName = "element2" };
+			TreeItemViewModel node11 = new TreeItemViewModel(node1, false) { DisplayName = "element11", Remarks = "Look at me!" };
+			TreeItemViewModel node12 = new TreeItemViewModel(node1, false) { DisplayName = "element12 (disabled)", IsEnabled = false };
+			TreeItemViewModel node13 = new TreeItemViewModel(node1, false) { DisplayName = "element13" };
+			TreeItemViewModel node131 = new TreeItemViewModel(node13, false) { DisplayName = "element131" };
+			TreeItemViewModel node132 = new TreeItemViewModel(node13, false) { DisplayName = "element132" };
+			TreeItemViewModel node14 = new TreeItemViewModel(node1, false) { DisplayName = "element14 with colours" };
+			ColorItemViewModel colorNode1 = new ColorItemViewModel(node14, false) { Color = Colors.Aqua, IsEditable = true };
+			ColorItemViewModel colorNode2 = new ColorItemViewModel(node14, false) { Color = Colors.ForestGreen };
+			ColorItemViewModel colorNode3 = new ColorItemViewModel(node14, false) { Color = Colors.LightSalmon };
+			TreeItemViewModel node15 = new TreeItemViewModel(node1, true) { DisplayName = "element15 (lazy loading)" };
 
 			// Add them all to each other
 			rootNode.Children.Add(node1);
@@ -54,7 +46,7 @@ namespace Demo
 			// Use the root node as the window's DataContext to allow data binding. The TreeView
 			// will use the Children property of the DataContext as list of root tree items. This
 			// property happens to be the same as each item DataTemplate uses to find its subitems.
-			DataContext = rootNode;
+            this.DataContext = rootNode;
 
 			// Preset some node states
 			node1.IsSelected = true;
@@ -64,7 +56,7 @@ namespace Demo
 
 		private void TheTreeView_PreviewSelectionChanged(object sender, PreviewSelectionChangedEventArgs e)
 		{
-			if (LockSelectionCheck.IsChecked == true)
+			if (this.LockSelectionCheck.IsChecked == true)
 			{
 				// The current selection is locked by user request (Lock CheckBox is checked).
 				// Don't allow any changes to the selection at all.
@@ -75,9 +67,9 @@ namespace Demo
 				// Selection is not locked, apply other conditions.
 				// Require all selected items to be of the same type. If an item of another data
 				// type is already selected, don't include this new item in the selection.
-				if (e.Selecting && TheTreeView.SelectedItems.Count > 0)
+				if (e.Selecting && this.TheTreeView.SelectedItems.Count > 0)
 				{
-					e.CancelThis = e.Item.GetType() != TheTreeView.SelectedItems[0].GetType();
+					e.CancelThis = e.Item.GetType() != this.TheTreeView.SelectedItems[0].GetType();
 				}
 			}
 
@@ -91,10 +83,10 @@ namespace Demo
 			//}
 		}
 
-		private void ClearChildrenButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void ClearChildrenButton_Click(object sender, RoutedEventArgs e)
 		{
-			var selection = new object[TheTreeView.SelectedItems.Count];
-			TheTreeView.SelectedItems.CopyTo(selection, 0);
+			object[] selection = new object[this.TheTreeView.SelectedItems.Count];
+            this.TheTreeView.SelectedItems.CopyTo(selection, 0);
 			foreach (TreeItemViewModel node in selection)
 			{
 				if (node.Children != null)
@@ -104,9 +96,9 @@ namespace Demo
 			}
 		}
 
-		private void AddChildButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void AddChildButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems)
 			{
 				if (!node.HasDummyChild)
 				{
@@ -116,27 +108,27 @@ namespace Demo
 			}
 		}
 
-		private void ExpandNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void ExpandNodesButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems)
 			{
 				node.IsExpanded = true;
 			}
 		}
 
-		private void HideNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void HideNodesButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems.OfType<TreeItemViewModel>().ToArray())
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems.OfType<TreeItemViewModel>().ToArray())
 			{
 				node.IsVisible = false;
 			}
 		}
 
-		private void ShowNodesButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void ShowNodesButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.Items)
+			foreach (TreeItemViewModel node in this.TheTreeView.Items)
 			{
-				DoShowAll(node, (n) => true);
+                this.DoShowAll(node, (n) => true);
 			}
 		}
 
@@ -145,43 +137,43 @@ namespace Demo
 			node.IsVisible = selector(node);
 			if (node.Children != null)
 			{
-				foreach (var child in node.Children)
+				foreach (TreeItemViewModel child in node.Children)
 				{
-					DoShowAll(child, selector);
+                    this.DoShowAll(child, selector);
 				}
 			}
 		}
 
-		private void SelectNoneButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void SelectNoneButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.Items)
+			foreach (TreeItemViewModel node in this.TheTreeView.Items)
 			{
-				DoSelectAll(node, (n) => false);
+                this.DoSelectAll(node, (n) => false);
 			}
 		}
 
-		private void SelectSomeButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void SelectSomeButton_Click(object sender, RoutedEventArgs e)
 		{
 			Random rnd = new Random();
-			foreach (TreeItemViewModel node in TheTreeView.Items)
+			foreach (TreeItemViewModel node in this.TheTreeView.Items)
 			{
-				DoSelectAll(node, (n) => rnd.Next(0, 2) > 0);
+                this.DoSelectAll(node, (n) => rnd.Next(0, 2) > 0);
 			}
 		}
 
-		private void SelectAllButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void SelectAllButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.Items)
+			foreach (TreeItemViewModel node in this.TheTreeView.Items)
 			{
-				DoSelectAll(node, (n) => true);
+                this.DoSelectAll(node, (n) => true);
 			}
 		}
 
-		private void ToggleSelectButton_Click(object sender, System.Windows.RoutedEventArgs e)
+		private void ToggleSelectButton_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.Items)
+			foreach (TreeItemViewModel node in this.TheTreeView.Items)
 			{
-				DoSelectAll(node, (n) => !n.IsSelected);
+                this.DoSelectAll(node, (n) => !n.IsSelected);
 			}
 		}
 
@@ -190,16 +182,16 @@ namespace Demo
 			node.IsSelected = selector(node);
 			if (node.Children != null)
 			{
-				foreach (var child in node.Children)
+				foreach (TreeItemViewModel child in node.Children)
 				{
-					DoSelectAll(child, selector);
+                    this.DoSelectAll(child, selector);
 				}
 			}
 		}
 
 		private void ExpandMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems)
 			{
 				node.IsExpanded = true;
 			}
@@ -207,7 +199,7 @@ namespace Demo
 
 		private void RenameMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems)
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems)
 			{
 				node.IsEditing = true;
 				break;
@@ -216,7 +208,7 @@ namespace Demo
 
 		private void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			foreach (TreeItemViewModel node in TheTreeView.SelectedItems.Cast<TreeItemViewModel>().ToArray())
+			foreach (TreeItemViewModel node in this.TheTreeView.SelectedItems.Cast<TreeItemViewModel>().ToArray())
 			{
 				node.Parent.Children.Remove(node);
 			}
@@ -224,17 +216,17 @@ namespace Demo
 
 		private void ShowSecondCheck_Checked(object sender, RoutedEventArgs e)
 		{
-			if (ShowSecondCheck.IsChecked == true)
+			if (this.ShowSecondCheck.IsChecked == true)
 			{
-				if (LastColumn.ActualWidth == 0)
-					Width += FirstColumn.ActualWidth;
-				LastColumn.Width = new GridLength(1, GridUnitType.Star);
+				if (this.LastColumn.ActualWidth == 0)
+                    this.Width += this.FirstColumn.ActualWidth;
+                this.LastColumn.Width = new GridLength(1, GridUnitType.Star);
 			}
 			else
 			{
-				if (LastColumn.ActualWidth > 0)
-					Width -= LastColumn.ActualWidth;
-				LastColumn.Width = new GridLength(0, GridUnitType.Pixel);
+				if (this.LastColumn.ActualWidth > 0)
+                    this.Width -= this.LastColumn.ActualWidth;
+                this.LastColumn.Width = new GridLength(0, GridUnitType.Pixel);
 			}
 		}
 	}

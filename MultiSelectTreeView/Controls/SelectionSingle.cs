@@ -1,4 +1,4 @@
-﻿namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+﻿namespace System.Windows.Controls {
     public class SelectionSingle {
     }
 }

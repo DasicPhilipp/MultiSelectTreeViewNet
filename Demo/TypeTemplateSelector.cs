@@ -22,7 +22,7 @@ namespace Demo
 		/// </summary>
 		public TypeTemplateSelector()
 		{
-			TemplateDefinitions = new List<TypeTemplateDefinition>();
+            this.TemplateDefinitions = new List<TypeTemplateDefinition>();
 		}
 
 		/// <summary>
@@ -33,7 +33,7 @@ namespace Demo
 		/// <returns></returns>
 		public override DataTemplate SelectTemplate(object item, DependencyObject container)
 		{
-			foreach (var def in TemplateDefinitions)
+			foreach (TypeTemplateDefinition def in this.TemplateDefinitions)
 			{
 				if (def.Type.IsInstanceOfType(item)) return def.Template;
 			}

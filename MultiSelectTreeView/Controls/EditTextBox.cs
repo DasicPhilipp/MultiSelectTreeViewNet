@@ -1,9 +1,7 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
+﻿using System.Windows.Data;
 using System.Windows.Input;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     /// <summary>
     /// Text box which focuses itself on load and selects all text in it.
     /// </summary>

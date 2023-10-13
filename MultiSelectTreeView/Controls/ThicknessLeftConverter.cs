@@ -1,9 +1,7 @@
-﻿using System;
-using System.Globalization;
-using System.Windows;
+﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     class ThicknessLeftConverter : IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
             if (value is int)

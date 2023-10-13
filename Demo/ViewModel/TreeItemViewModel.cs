@@ -34,10 +34,10 @@ namespace Demo.ViewModel
 		{
 			this.parent = parent;
 
-			children = new ObservableCollection<TreeItemViewModel>();
+            this.children = new ObservableCollection<TreeItemViewModel>();
 
 			if (lazyLoadChildren)
-				children.Add(DummyChild);
+                this.children.Add(DummyChild);
 		}
 
 		// This is used to create the DummyChild instance.
@@ -54,7 +54,7 @@ namespace Demo.ViewModel
 		/// </summary>
 		public ObservableCollection<TreeItemViewModel> Children
 		{
-			get { return children; }
+			get { return this.children; }
 		}
 
 		/// <summary>
@@ -62,7 +62,7 @@ namespace Demo.ViewModel
 		/// </summary>
 		public bool HasDummyChild
 		{
-			get { return Children.Count == 1 && Children[0] == DummyChild; }
+			get { return this.Children.Count == 1 && this.Children[0] == DummyChild; }
 		}
 
 		/// <summary>
@@ -71,23 +71,23 @@ namespace Demo.ViewModel
 		/// </summary>
 		public bool IsExpanded
 		{
-			get { return isExpanded; }
+			get { return this.isExpanded; }
 			set
 			{
-				if (value != isExpanded)
+				if (value != this.isExpanded)
 				{
-					isExpanded = value;
-					OnPropertyChanged("IsExpanded");
+                    this.isExpanded = value;
+                    this.OnPropertyChanged("IsExpanded");
 
 					// Expand all the way up to the root.
-					if (isExpanded && parent != null)
-						parent.IsExpanded = true;
+					if (this.isExpanded && this.parent != null)
+                        this.parent.IsExpanded = true;
 
 					// Lazy load the child items, if necessary.
-					if (isExpanded && HasDummyChild)
+					if (this.isExpanded && this.HasDummyChild)
 					{
-						Children.Remove(DummyChild);
-						LoadChildren();
+                        this.Children.Remove(DummyChild);
+                        this.LoadChildren();
 					}
 				}
 			}
@@ -101,7 +101,7 @@ namespace Demo.ViewModel
 		{
 			for (int i = 0; i < 100; i++)
 			{
-				Children.Add(new TreeItemViewModel(this, true) { DisplayName = "subnode " + i });
+                this.Children.Add(new TreeItemViewModel(this, true) { DisplayName = "subnode " + i });
 			}
 		}
 
@@ -111,90 +111,90 @@ namespace Demo.ViewModel
 		/// </summary>
 		public bool IsSelected
 		{
-			get { return isSelected; }
+			get { return this.isSelected; }
 			set
 			{
-				if (value != isSelected)
+				if (value != this.isSelected)
 				{
-					isSelected = value;
-					OnPropertyChanged("IsSelected");
+                    this.isSelected = value;
+                    this.OnPropertyChanged("IsSelected");
 				}
 			}
 		}
 
 		public bool IsEditable
 		{
-			get { return isEditable; }
+			get { return this.isEditable; }
 			set
 			{
-				if (value != isEditable)
+				if (value != this.isEditable)
 				{
-					isEditable = value;
-					OnPropertyChanged("IsEditable");
+                    this.isEditable = value;
+                    this.OnPropertyChanged("IsEditable");
 				}
 			}
 		}
 
 		public bool IsEditing
 		{
-			get { return isEditing; }
+			get { return this.isEditing; }
 			set
 			{
-				if (value != isEditing)
+				if (value != this.isEditing)
 				{
-					isEditing = value;
-					OnPropertyChanged("IsEditing");
+                    this.isEditing = value;
+                    this.OnPropertyChanged("IsEditing");
 				}
 			}
 		}
 
 		public bool IsEnabled
 		{
-			get { return isEnabled; }
+			get { return this.isEnabled; }
 			set
 			{
-				if (value != isEnabled)
+				if (value != this.isEnabled)
 				{
-					isEnabled = value;
-					OnPropertyChanged("IsEnabled");
+                    this.isEnabled = value;
+                    this.OnPropertyChanged("IsEnabled");
 				}
 			}
 		}
 
 		public bool IsVisible
 		{
-			get { return isVisible; }
+			get { return this.isVisible; }
 			set
 			{
-				if (value != isVisible)
+				if (value != this.isVisible)
 				{
-					isVisible = value;
-					OnPropertyChanged("IsVisible");
+                    this.isVisible = value;
+                    this.OnPropertyChanged("IsVisible");
 				}
 			}
 		}
 
 		public string Remarks
 		{
-			get { return remarks; }
+			get { return this.remarks; }
 			set
 			{
-				if (value != remarks)
+				if (value != this.remarks)
 				{
-					remarks = value;
-					OnPropertyChanged("Remarks");
+                    this.remarks = value;
+                    this.OnPropertyChanged("Remarks");
 				}
 			}
 		}
 
 		public TreeItemViewModel Parent
 		{
-			get { return parent; }
+			get { return this.parent; }
 		}
 
 		public override string ToString()
 		{
-			return "{Node " + DisplayName + "}";
+			return "{Node " + this.DisplayName + "}";
 		}
 
 		#endregion Public properties
@@ -209,13 +209,13 @@ namespace Demo.ViewModel
 		private string displayName;
 		public virtual string DisplayName
 		{
-			get { return displayName; }
+			get { return this.displayName; }
 			set
 			{
-				if (value != displayName)
+				if (value != this.displayName)
 				{
-					displayName = value;
-					OnPropertyChanged("DisplayName");
+                    this.displayName = value;
+                    this.OnPropertyChanged("DisplayName");
 				}
 			}
 		}
@@ -235,7 +235,7 @@ namespace Demo.ViewModel
 		/// <param name="propertyName">The property that has a new value.</param>
 		protected void OnPropertyChanged(string propertyName)
 		{
-			var handler = PropertyChanged;
+			PropertyChangedEventHandler handler = this.PropertyChanged;
 			if (handler != null)
 			{
 				handler(this, new PropertyChangedEventArgs(propertyName));

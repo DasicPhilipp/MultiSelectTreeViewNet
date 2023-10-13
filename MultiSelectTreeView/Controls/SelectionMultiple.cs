@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     /// <summary>
     /// Implements the logic for the multiple selection strategy.
     /// </summary>
@@ -291,7 +288,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
         }
 
         private MultiSelectTreeViewItem GetFocusedItem() {
-            return MultiSelectTreeView.EnumerableTreeRecursiveFirst(x => x.IsFocused, this.treeView, false, false);
+            return MultiSelectTreeView.FindFirstInTreeRecursive(x => x.IsFocused, this.treeView, false, false);
         }
 
         private bool SelectFromKey(MultiSelectTreeViewItem item) {
@@ -317,7 +314,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             }
 
             double targetY = item.TransformToAncestor(this.treeView).Transform(new Point()).Y;
-            FrameworkElement itemContent = (FrameworkElement) item.Template.FindName("headerBorder", item);
+            FrameworkElement itemContent = item.headerBorder;
             double offset = this.treeView.ActualHeight - 2 * itemContent.ActualHeight;
             if (!down)
                 offset = -offset;

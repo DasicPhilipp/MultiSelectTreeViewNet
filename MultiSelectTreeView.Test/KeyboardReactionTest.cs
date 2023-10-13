@@ -1,22 +1,12 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiSelectTreeView.Test.Model.Helper;
-using System.Windows.Automation;
-using System.Threading;
 
-namespace MultiSelectTreeView.Test.Model
-{
+namespace MultiSelectTreeView.Test.Model {
     [TestClass]
-    public class KeyboardReactionTest
-    {
+    public class KeyboardReactionTest {
         [TestMethod]
-        public void KeyboardLeftRightUpDownArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardLeftRightUpDownArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
                 sst.Element1.Select();
                 Keyboard.Right();
@@ -47,10 +37,8 @@ namespace MultiSelectTreeView.Test.Model
         }
 
         [TestMethod]
-        public void KeyboardUpDownWithShiftArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardUpDownWithShiftArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
                 sst.Element1.Select();
                 Keyboard.Right();
@@ -87,10 +75,8 @@ namespace MultiSelectTreeView.Test.Model
         }
 
         [TestMethod]
-        public void KeyboardUpDownWithCtrlArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardUpDownWithCtrlArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
                 sst.Element1.Select();
                 Keyboard.Right();

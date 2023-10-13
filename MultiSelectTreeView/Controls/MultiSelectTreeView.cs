@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using System.Windows.Automation.Peers;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using RZAccountManagerV9.Utils;
-using RZAccountManagerV9.WPF.Controls.TreeViews.Automation.Peers;
+using System.Windows.Utils;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     [StyleTypedProperty(Property = "ItemContainerStyle", StyleTargetType = typeof(MultiSelectTreeViewItem))]
     public class MultiSelectTreeView : ItemsControl {
         #region Constants and Fields
@@ -169,8 +165,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
 
         public void BringItemIntoView(object item) {
             MultiSelectTreeViewItem node = this.GetTreeViewItemsFor(new List<object> {item}).First();
-            FrameworkElement itemContent = (FrameworkElement) node.Template.FindName("headerBorder", node);
-            itemContent.BringIntoView();
+            node.headerBorder?.BringIntoView();
         }
 
         public bool SelectNextItem() {
@@ -284,9 +279,9 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
         }
 
         internal MultiSelectTreeViewItem GetFirstItem(List<MultiSelectTreeViewItem> items) {
-            for (int i = 0; i < items.Count; i++) {
-                if (items[i].IsVisible) {
-                    return items[i];
+            foreach (MultiSelectTreeViewItem item in items) {
+                if (item.IsVisible) {
+                    return item;
                 }
             }
 
@@ -353,19 +348,27 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             base.OnItemsChanged(e);
         }
 
-        internal static List<MultiSelectTreeViewItem> GetEntireTreeRecursive(ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
+        public static List<MultiSelectTreeViewItem> GetEntireTreeRecursive(ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
             List<MultiSelectTreeViewItem> list = new List<MultiSelectTreeViewItem>(128);
-            GetEntireTreeRecursive(list, parent, includeInvisible, includeDisabled);
+            AccumulateEntireTreeRecursive(list, parent, includeInvisible, includeDisabled);
             return list;
         }
 
-        internal static void GetEntireTreeRecursive(List<MultiSelectTreeViewItem> dst, ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
-            if (parent.ItemContainerGenerator.Status == GeneratorStatus.NotStarted) {
+        /// <summary>
+        /// Accumulates all items in the given parent's tree, recursively
+        /// </summary>
+        /// <param name="dst">The list in which found items are added to</param>
+        /// <param name="parent">The starting container, which can be a MultiSelectTreeView or MultiSelectTreeViewItem</param>
+        /// <param name="includeInvisible">Includes invisible items</param>
+        /// <param name="includeDisabled">Includes disabled items</param>
+        public static void AccumulateEntireTreeRecursive(List<MultiSelectTreeViewItem> dst, ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
+            ItemContainerGenerator icg = parent.ItemContainerGenerator;
+            if (icg.Status == GeneratorStatus.NotStarted) {
                 return;
             }
 
             for (int i = 0, count = parent.Items.Count; i < count; i++) {
-                MultiSelectTreeViewItem tve = (MultiSelectTreeViewItem) parent.ItemContainerGenerator.ContainerFromIndex(i);
+                MultiSelectTreeViewItem tve = (MultiSelectTreeViewItem) icg.ContainerFromIndex(i);
                 if (tve == null) {
                     continue; // Container was not generated, therefore it is probably not visible, so we can ignore it.
                 }
@@ -373,55 +376,89 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
                 if ((includeInvisible || tve.IsVisible) && (includeDisabled || tve.IsEnabled)) {
                     dst.Add(tve);
                     if (includeInvisible || tve.IsExpanded) {
-                        GetEntireTreeRecursive(dst, tve, includeInvisible, includeDisabled);
+                        AccumulateEntireTreeRecursive(dst, tve, includeInvisible, includeDisabled);
                     }
                 }
             }
         }
 
-        internal static IEnumerable<MultiSelectTreeViewItem> EnumerableTreeRecursive(ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
-            if (parent.ItemContainerGenerator.Status == GeneratorStatus.NotStarted) {
+        public static IEnumerable<MultiSelectTreeViewItem> EnumerableTreeRecursive(ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
+            ItemContainerGenerator icg = parent.ItemContainerGenerator;
+            if (icg.Status == GeneratorStatus.NotStarted) {
                 yield break;
             }
 
             for (int i = 0, count = parent.Items.Count; i < count; i++) {
-                MultiSelectTreeViewItem tve = (MultiSelectTreeViewItem) parent.ItemContainerGenerator.ContainerFromIndex(i);
-                if (tve == null) {
+                MultiSelectTreeViewItem nextItem = (MultiSelectTreeViewItem) icg.ContainerFromIndex(i);
+                if (nextItem == null) {
                     continue; // Container was not generated, therefore it is probably not visible, so we can ignore it.
                 }
 
-                if ((includeInvisible || tve.IsVisible) && (includeDisabled || tve.IsEnabled)) {
-                    yield return tve;
-                    if (includeInvisible || tve.IsExpanded) {
-                        foreach (MultiSelectTreeViewItem tvi in EnumerableTreeRecursive(tve, includeInvisible, includeDisabled)) {
-                            yield return tvi;
+                if ((includeInvisible || nextItem.IsVisible) && (includeDisabled || nextItem.IsEnabled)) {
+                    yield return nextItem;
+                    if (includeInvisible || nextItem.IsExpanded) {
+                        using (IEnumerator<MultiSelectTreeViewItem> enumerator = EnumerableTreeRecursive(nextItem, includeInvisible, includeDisabled).GetEnumerator()) {
+                            while (enumerator.MoveNext()) {
+                                yield return enumerator.Current;
+                            }
                         }
                     }
                 }
             }
         }
 
-        internal static MultiSelectTreeViewItem EnumerableTreeRecursiveFirst(Predicate<MultiSelectTreeViewItem> accept, ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
-            if (parent.ItemContainerGenerator.Status == GeneratorStatus.NotStarted) {
+        public static MultiSelectTreeViewItem FindFirstInTreeRecursive(Predicate<MultiSelectTreeViewItem> accept, ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
+            ItemContainerGenerator icg = parent.ItemContainerGenerator;
+            if (icg.Status == GeneratorStatus.NotStarted) {
                 return null;
             }
 
             for (int i = 0, count = parent.Items.Count; i < count; i++) {
-                MultiSelectTreeViewItem tve = (MultiSelectTreeViewItem) parent.ItemContainerGenerator.ContainerFromIndex(i);
-                if (tve == null) {
+                MultiSelectTreeViewItem nextItem = (MultiSelectTreeViewItem) icg.ContainerFromIndex(i);
+                if (nextItem == null) {
                     continue; // Container was not generated, therefore it is probably not visible, so we can ignore it.
                 }
 
-                if ((includeInvisible || tve.IsVisible) && (includeDisabled || tve.IsEnabled)) {
-                    if (accept(tve)) {
-                        return tve;
+                if ((includeInvisible || nextItem.IsVisible) && (includeDisabled || nextItem.IsEnabled)) {
+                    if (accept == null || accept(nextItem)) {
+                        return nextItem;
                     }
 
-                    if (includeInvisible || tve.IsExpanded) {
-                        MultiSelectTreeViewItem item = EnumerableTreeRecursiveFirst(accept, tve, includeInvisible, includeDisabled);
-                        if (item != null) {
-                            return item;
+                    if (includeInvisible || nextItem.IsExpanded) {
+                        MultiSelectTreeViewItem found = FindFirstInTreeRecursive(accept, nextItem, includeInvisible, includeDisabled);
+                        if (found != null) {
+                            return found;
                         }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static MultiSelectTreeViewItem FindLastInTreeRecursive(Predicate<MultiSelectTreeViewItem> accept, ItemsControl parent, bool includeInvisible, bool includeDisabled = true) {
+            ItemContainerGenerator icg = parent.ItemContainerGenerator;
+            if (icg.Status == GeneratorStatus.NotStarted) {
+                return null;
+            }
+
+            int count = parent.Items.Count;
+            for (int i = count - 1; i >= 0; i--) {
+                MultiSelectTreeViewItem nextItem = (MultiSelectTreeViewItem) icg.ContainerFromIndex(i);
+                if (nextItem == null) {
+                    continue; // Container was not generated, therefore it is probably not visible, so we can ignore it.
+                }
+
+                if ((includeInvisible || nextItem.IsVisible) && (includeDisabled || nextItem.IsEnabled)) {
+                    if (includeInvisible || nextItem.IsExpanded) {
+                        MultiSelectTreeViewItem found = FindLastInTreeRecursive(accept, nextItem, includeInvisible, includeDisabled);
+                        if (found != null) {
+                            return found;
+                        }
+                    }
+
+                    if (accept == null || accept(nextItem)) {
+                        return nextItem;
                     }
                 }
             }
@@ -435,13 +472,11 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             int lastIndex = allNodes.IndexOf(lastNode);
 
             if (firstIndex >= allNodes.Count) {
-                throw new InvalidOperationException(
-                    "First node index " + firstIndex + "greater or equal than count " + allNodes.Count + ".");
+                throw new InvalidOperationException("First node index " + firstIndex + "greater or equal than count " + allNodes.Count + ".");
             }
 
             if (lastIndex >= allNodes.Count) {
-                throw new InvalidOperationException(
-                    "Last node index " + lastIndex + " greater or equal than count " + allNodes.Count + ".");
+                throw new InvalidOperationException("Last node index " + lastIndex + " greater or equal than count " + allNodes.Count + ".");
             }
 
             List<MultiSelectTreeViewItem> nodesToSelect = new List<MultiSelectTreeViewItem>();
@@ -473,16 +508,72 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
         /// </summary>
         /// <param name="dataItems">List of data items to search for.</param>
         /// <returns></returns>
-        internal IEnumerable<MultiSelectTreeViewItem> GetTreeViewItemsFor(IEnumerable dataItems) {
+        public IEnumerable<MultiSelectTreeViewItem> GetTreeViewItemsFor(IEnumerable dataItems) {
             if (dataItems == null) {
+                return Enumerable.Empty<MultiSelectTreeViewItem>();
+            }
+
+            const int SizeUntilArrayOutperformsHashSet = 8;
+
+            if (dataItems is ICollection) {
+                ICollection collection = (ICollection) dataItems;
+                if (collection.Count < SizeUntilArrayOutperformsHashSet) {
+                    object[] array = new object[collection.Count];
+                    collection.CopyTo(array, 0);
+                    return this.GetTreeViewItemsFor_SmallCollection(array);
+                }
+                else {
+                    return this.GetTreeViewItemsFor_LargeCollection(collection);
+                }
+            }
+            else {
+                ArrayList arrayList = new ArrayList();
+                foreach (object o in dataItems)
+                    arrayList.Add(o);
+                if (arrayList.Count < SizeUntilArrayOutperformsHashSet) {
+                    return this.GetTreeViewItemsFor_SmallCollection(arrayList.ToArray());
+                }
+                else {
+                    return this.GetTreeViewItemsFor_LargeCollection(arrayList);
+                }
+            }
+        }
+
+        private IEnumerable<MultiSelectTreeViewItem> GetTreeViewItemsFor_SmallCollection(object[] collection) {
+            if (collection == null || collection.Length < 1) {
                 yield break;
             }
 
-            foreach (object dataItem in dataItems) {
-                foreach (MultiSelectTreeViewItem tvi in GetEntireTreeRecursive(this, true)) {
-                    if (tvi.DataContext == dataItem) {
-                        yield return tvi;
-                        break;
+            using (IEnumerator<MultiSelectTreeViewItem> enumerator = EnumerableTreeRecursive(this, true).GetEnumerator()) {
+                while (enumerator.MoveNext()) {
+                    MultiSelectTreeViewItem next = enumerator.Current;
+                    if (next != null) {
+                        foreach (object obj in collection) {
+                            if (obj == next.DataContext) {
+                                yield return next;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<MultiSelectTreeViewItem> GetTreeViewItemsFor_LargeCollection(ICollection collection) {
+            if (collection == null) {
+                yield break;
+            }
+
+            ReferenceSet<object> items = new ReferenceSet<object>();
+            foreach (object item in collection) {
+                items.Add(item);
+            }
+
+            using (IEnumerator<MultiSelectTreeViewItem> enumerator = EnumerableTreeRecursive(this, true).GetEnumerator()) {
+                while (enumerator.MoveNext()) {
+                    MultiSelectTreeViewItem next = enumerator.Current;
+                    if (next != null && items.Contains(next.DataContext)) {
+                        yield return next;
                     }
                 }
             }
@@ -492,7 +583,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
         /// Gets all data items referenced in all treeview items of the entire control.
         /// </summary>
         /// <returns></returns>
-        internal IEnumerable GetAllDataItems() => GetEntireTreeRecursive(this, true).Select(x => x.DataContext);
+        public IEnumerable<object> GetAllDataItems() => GetEntireTreeRecursive(this, true).Select(x => x.DataContext);
 
         // this eventhandler reacts on the firing control to, in order to update the own status
         private void OnSelectedItemsChanged(object sender, NotifyCollectionChangedEventArgs e) {
@@ -554,7 +645,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
                 switch (key) {
                     case Key.Up:
                         // Select last item
-                        MultiSelectTreeViewItem lastNode = GetEntireTreeRecursive(this, false).LastOrDefault();
+                        MultiSelectTreeViewItem lastNode = FindLastInTreeRecursive(null, this, false);
                         if (lastNode != null) {
                             this.Selection.Select(lastNode);
                             e.Handled = true;
@@ -563,7 +654,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
                         break;
                     case Key.Down:
                         // Select first item
-                        MultiSelectTreeViewItem firstNode = GetEntireTreeRecursive(this, false).FirstOrDefault();
+                        MultiSelectTreeViewItem firstNode = FindFirstInTreeRecursive(null, this, false);
                         if (firstNode != null) {
                             this.Selection.Select(firstNode);
                             e.Handled = true;
@@ -617,7 +708,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
                 this.Dispatcher.BeginInvoke((Action) (() => FocusHelper.Focus(lastFocusedItem)));
             }
             else {
-                MultiSelectTreeViewItem firstNode = GetEntireTreeRecursive(this, false).FirstOrDefault();
+                MultiSelectTreeViewItem firstNode = FindFirstInTreeRecursive(null, this, false);
                 if (firstNode != null) {
                     this.Dispatcher.BeginInvoke((Action) (() => FocusHelper.Focus(firstNode)));
                 }

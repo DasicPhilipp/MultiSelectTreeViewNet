@@ -1,16 +1,13 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Windows;
 using System.Windows.Automation.Peers;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using RZAccountManagerV9.Utils;
-using RZAccountManagerV9.WPF.Controls.TreeViews.Automation.Peers;
+using System.Windows.Utils;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     [TemplatePart(Name = "ItemsHost", Type = typeof(ItemsPresenter))]
     [StyleTypedProperty(Property = "ItemContainerStyle", StyleTargetType = typeof(MultiSelectTreeViewItem))]
     public class MultiSelectTreeViewItem : HeaderedItemsControl {
@@ -246,6 +243,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
         public bool IsLeftMousePressed => (bool) this.GetValue(IsLeftMousePressedProperty);
 
         private MultiSelectTreeView lastParentTreeView;
+        internal FrameworkElement headerBorder;
 
         internal MultiSelectTreeView ParentTreeView {
             get {
@@ -349,11 +347,15 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             }
         }
 
+        public override void OnApplyTemplate() {
+            base.OnApplyTemplate();
+            this.headerBorder = (FrameworkElement) this.GetTemplateChild("headerBorder") ?? throw new Exception("No element 'headerBorder'");
+        }
+
         protected override void OnMouseDoubleClick(MouseButtonEventArgs e) {
             base.OnMouseDoubleClick(e);
 
-            FrameworkElement itemContent = (FrameworkElement) this.Template.FindName("headerBorder", this);
-            if (!itemContent.IsMouseOver) {
+            if (!this.headerBorder.IsMouseOver) {
                 // A (probably disabled) child item was really clicked, do nothing here
                 return;
             }
@@ -483,8 +485,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             //System.Diagnostics.Debug.WriteLine("MultiSelectTreeViewItem.OnMouseDown(Item = " + this.DisplayName + ", Button = " + e.ChangedButton + ")");
             base.OnMouseDown(e);
 
-            FrameworkElement itemContent = (FrameworkElement) this.Template.FindName("headerBorder", this);
-            if (!itemContent.IsMouseOver) {
+            if (!this.headerBorder.IsMouseOver) {
                 // A (probably disabled) child item was really clicked, do nothing here
                 return;
             }
@@ -548,16 +549,23 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
                     // Remove all items from the SelectedItems list that are no longer in the Items
                     // list
                     parentTV = this.ParentTreeView ?? this.lastParentTreeView;
-                    if (parentTV != null) {
-                        object[] selection = new object[parentTV.SelectedItems.Count];
-                        parentTV.SelectedItems.CopyTo(selection, 0);
-                        HashSet<object> dataItems = new HashSet<object>(MultiSelectTreeView.GetEntireTreeRecursive(parentTV, true).Select(x => x.DataContext));
-                        foreach (object item in selection) {
-                            if (!dataItems.Contains(item)) {
-                                parentTV.SelectedItems.Remove(item);
-                                // Don't preview and ask, it is already gone so it must be removed
-                                // from the SelectedItems list
-                            }
+                    if (parentTV == null) {
+                        break;
+                    }
+
+                    IList treeSelection = parentTV.SelectedItems;
+                    if (treeSelection == null || treeSelection.Count < 1) {
+                        break;
+                    }
+
+                    ReferenceSet<object> selection = new ReferenceSet<object>();
+                    foreach (object obj in treeSelection) {
+                        selection.Add(obj);
+                    }
+
+                    foreach (object dataObject in MultiSelectTreeView.GetEntireTreeRecursive(parentTV, true).Select(x => x.DataContext)) {
+                        if (!selection.Contains(dataObject)) {
+                            treeSelection.Remove(dataObject);
                         }
                     }
 

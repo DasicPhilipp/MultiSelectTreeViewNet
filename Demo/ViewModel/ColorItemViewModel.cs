@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using System.Windows.Media;
 
 namespace Demo.ViewModel
@@ -15,7 +11,7 @@ namespace Demo.ViewModel
 		public ColorItemViewModel(TreeItemViewModel parent, bool lazyLoadChildren)
 			: base(parent, lazyLoadChildren)
 		{
-			Color = Colors.Silver;
+            this.Color = Colors.Silver;
 		}
 
 		#endregion Constructor
@@ -25,28 +21,28 @@ namespace Demo.ViewModel
 		private Color color;
 		public Color Color
 		{
-			get { return color; }
+			get { return this.color; }
 			set
 			{
-				if (value != color)
+				if (value != this.color)
 				{
-					color = value;
-					OnPropertyChanged("Color");
-					OnPropertyChanged("BackgroundBrush");
-					OnPropertyChanged("ForegroundBrush");
-					DisplayName = color.ToString();
+                    this.color = value;
+                    this.OnPropertyChanged("Color");
+                    this.OnPropertyChanged("BackgroundBrush");
+                    this.OnPropertyChanged("ForegroundBrush");
+                    this.DisplayName = this.color.ToString();
 				}
 			}
 		}
 
 		public Brush BackgroundBrush
 		{
-			get { return new SolidColorBrush(Color); }
+			get { return new SolidColorBrush(this.Color); }
 		}
 
 		public Brush ForegroundBrush
 		{
-			get { return IsDarkColor(Color) ? Brushes.White : Brushes.Black; }
+			get { return IsDarkColor(this.Color) ? Brushes.White : Brushes.Black; }
 		}
 
 		#endregion Public properties

@@ -2,15 +2,19 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace System.Windows.Utils {
-    public class ReferenceDictionary<TKey, TValue> : Dictionary<TKey, TValue> where TKey : class {
-        public ReferenceDictionary() : base(ReferenceEqualityComparer.Instance) {
+    public class ReferenceSet<T> : HashSet<T> where T : class {
+        public ReferenceSet() : base(ReferenceEqualityComparer.Instance) {
 
         }
 
-        private sealed class ReferenceEqualityComparer : IEqualityComparer<TKey> {
+        public ReferenceSet(IEnumerable<T> items) : base(items, ReferenceEqualityComparer.Instance) {
+
+        }
+
+        private sealed class ReferenceEqualityComparer : IEqualityComparer<T> {
             public static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
-            public bool Equals(TKey x, TKey y) => ReferenceEquals(x, y);
-            public int GetHashCode(TKey obj) => RuntimeHelpers.GetHashCode(obj);
+            public bool Equals(T x, T y) => ReferenceEquals(x, y);
+            public int GetHashCode(T obj) => RuntimeHelpers.GetHashCode(obj);
         }
     }
 }

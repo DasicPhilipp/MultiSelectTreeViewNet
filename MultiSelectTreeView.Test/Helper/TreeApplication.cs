@@ -1,5 +1,4 @@
-﻿namespace MultiSelectTreeView.Test.Model.Helper
-{
+﻿namespace MultiSelectTreeView.Test.Model.Helper {
     #region
 
     using System;
@@ -7,15 +6,13 @@
     using System.Linq;
     using System.Threading;
     using System.Windows.Automation;
-    using System.Runtime.InteropServices;
 
     #endregion
 
     /// <summary>
     /// Helper to handle a processes automation element
     /// </summary>
-    public class TreeApplication : IDisposable
-    {
+    public class TreeApplication : IDisposable {
         #region Constants and Fields
 
         private readonly string processName;
@@ -28,43 +25,38 @@
 
         #region Constructors and Destructors
 
-        public TreeApplication(string fileName)
-        {
-            this.processName = fileName;// +".exe";
+        public TreeApplication(string fileName) {
+            this.processName = fileName; // +".exe";
 
-            p = GetProcess(processName);
-            if (p != null)
-            {
+            p = GetProcess(this.processName);
+            if (p != null) {
                 p.Kill();
             }
 
-            ProcessStartInfo ps = new ProcessStartInfo { FileName = fileName };
+            ProcessStartInfo ps = new ProcessStartInfo {FileName = fileName};
             p = new Process();
             p.StartInfo = ps;
             p.Start();
 
-            while (!p.Responding)
-            {
+            while (!p.Responding) {
                 Trace.WriteLine("waiting process");
                 Thread.Sleep(200);
             }
 
-            while (app == null)
-            {
-                app = InitializeAutomationElement();
+            while (this.app == null) {
+                this.app = this.InitializeAutomationElement();
                 Trace.WriteLine("waiting for app");
                 Thread.Sleep(200);
             }
         }
+
         #endregion
 
         #region Public Properties
 
-        public AutomationElement Ae
-        {
-            get
-            {
-                return app;
+        public AutomationElement Ae {
+            get {
+                return this.app;
             }
         }
 
@@ -72,13 +64,10 @@
 
         #region Public Methods
 
-        public void Dispose()
-        {
-            if (p != null && p.MainWindowHandle != IntPtr.Zero)
-            {
+        public void Dispose() {
+            if (p != null && p.MainWindowHandle != IntPtr.Zero) {
                 p.Kill();
-                while (GetProcess(processName) != null)
-                {
+                while (GetProcess(this.processName) != null) {
                     Thread.Sleep(50);
                 }
             }
@@ -88,14 +77,12 @@
 
         #region Methods
 
-        private static Process GetProcess(string processname)
-        {
+        private static Process GetProcess(string processname) {
             Process[] processes = Process.GetProcessesByName(processname);
             return processes.FirstOrDefault();
         }
 
-        private AutomationElement InitializeAutomationElement()
-        {
+        private AutomationElement InitializeAutomationElement() {
             AutomationElement ae = AutomationElement.RootElement;
             PropertyCondition cond = new PropertyCondition(AutomationElement.ProcessIdProperty, p.Id);
 

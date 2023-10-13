@@ -1,8 +1,7 @@
 ﻿using System.Threading;
-using System.Windows;
 using System.Windows.Threading;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     /// <summary>
     /// Helper methods to focus.
     /// </summary>
@@ -19,11 +18,7 @@ namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
             //System.Diagnostics.Debug.WriteLine("FocusHelper focusing " + (bringIntoView ? "[into view] " : "") + element.DataContext);
             FocusCore(element);
             if (bringIntoView) {
-                FrameworkElement itemContent = (FrameworkElement) element.Template.FindName("headerBorder", element);
-                if (itemContent != null) // May not be rendered yet...
-                {
-                    itemContent.BringIntoView();
-                }
+                element.headerBorder?.BringIntoView();
             }
         }
 

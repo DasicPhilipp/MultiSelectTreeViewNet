@@ -1,6 +1,6 @@
 ﻿using System.Collections;
 
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+namespace System.Windows.Controls {
     internal static class ListUtils {
         internal static object Last(this IList list) {
             if (list.Count < 1) {

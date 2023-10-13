@@ -1,59 +1,51 @@
-﻿namespace MultiSelectTreeView.Test.Model
-{
-   #region
-   using System.Windows.Automation;
+﻿namespace MultiSelectTreeView.Test.Model {
+    #region
 
-   using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Helper;
 
-   using MultiSelectTreeView.Test.Model.Helper;
+    #endregion
 
-   #endregion
+    [TestClass]
+    [DeploymentItem("W7StyleSample.exe")]
+    public class ExpandCollapseTests {
+        #region Constants and Fields
 
-   [TestClass]
-   [DeploymentItem("W7StyleSample.exe")]
-   public class ExpandCollapseTests
-   {
-      #region Constants and Fields
+        private const string FileName = "W7StyleSample.exe";
 
-      private const string FileName = "W7StyleSample.exe";
+        private const string ProcessName = "W7StyleSample";
 
-      private const string ProcessName = "W7StyleSample";
+        #endregion
 
-      #endregion
+        #region Public Properties
 
-      #region Public Properties
+        public TestContext TestContext { get; set; }
 
-      public TestContext TestContext { get; set; }
+        #endregion
 
-      #endregion
+        #region Public Methods
 
-      #region Public Methods
+        [TestMethod]
+        public void Collapse() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
+                SimpleSampleTree sst = new SimpleSampleTree(app);
+                sst.Element1.Expand();
+                sst.Element1.Collapse();
 
-      [TestMethod]
-      public void Collapse()
-      {
-          using (TreeApplication app = new TreeApplication("SimpleSample"))
-          {
-              SimpleSampleTree sst = new SimpleSampleTree(app);
-              sst.Element1.Expand();
-              sst.Element1.Collapse();
+                Assert.IsFalse(sst.Element1.IsExpanded);
+            }
+        }
 
-              Assert.IsFalse(sst.Element1.IsExpanded);
-          }
-      }
+        [TestMethod]
+        public void Expand() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
+                SimpleSampleTree sst = new SimpleSampleTree(app);
+                sst.Element1.Expand();
 
-      [TestMethod]
-      public void Expand()
-      {
-          using (TreeApplication app = new TreeApplication("SimpleSample"))
-          {
-              SimpleSampleTree sst = new SimpleSampleTree(app);
-              sst.Element1.Expand();
+                Assert.IsTrue(sst.Element1.IsExpanded);
+            }
+        }
 
-              Assert.IsTrue(sst.Element1.IsExpanded);
-          }
-      }
-
-      #endregion
-   }
+        #endregion
+    }
 }

@@ -1,22 +1,12 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiSelectTreeView.Test.Model.Helper;
-using System.Windows.Automation;
-using System.Threading;
 
-namespace MultiSelectTreeView.Test.Model
-{
+namespace MultiSelectTreeView.Test.Model {
     [TestClass]
-    public class MouseReactionTest
-    {
+    public class MouseReactionTest {
         [TestMethod]
-        public void KeyboardLeftRightUpDownArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardLeftRightUpDownArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
 
                 Mouse.Click(sst.Element1);
@@ -30,10 +20,8 @@ namespace MultiSelectTreeView.Test.Model
         }
 
         [TestMethod]
-        public void KeyboardUpDownWithShiftArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardUpDownWithShiftArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
                 Mouse.ExpandCollapseClick(sst.Element1);
 
@@ -67,12 +55,10 @@ namespace MultiSelectTreeView.Test.Model
         }
 
         [TestMethod]
-        public void DoubleClick()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void DoubleClick() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
-                
+
                 Mouse.DoubleClick(sst.Element1);
                 Assert.IsTrue(sst.Element1.IsExpanded, "Element1 is not expanded after double click");
 
@@ -82,10 +68,8 @@ namespace MultiSelectTreeView.Test.Model
         }
 
         [TestMethod]
-        public void KeyboardUpDownWithCtrlArrow()
-        {
-            using (TreeApplication app = new TreeApplication("SimpleSample"))
-            {
+        public void KeyboardUpDownWithCtrlArrow() {
+            using (TreeApplication app = new TreeApplication("SimpleSample")) {
                 SimpleSampleTree sst = new SimpleSampleTree(app);
                 Mouse.ExpandCollapseClick(sst.Element1);
                 Mouse.Click(sst.Element11);

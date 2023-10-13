@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace RZAccountManagerV9.WPF.Controls.TreeViews.Controls {
+﻿namespace System.Windows.Controls {
     internal interface ISelectionStrategy : IDisposable {
         event EventHandler<PreviewSelectionChangedEventArgs> PreviewSelectionChanged;
 

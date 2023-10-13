@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace RZAccountManagerV9.Utils {
+namespace System.Windows {
     public static class BoolBox {
         public static readonly object True = true;
         public static readonly object False = false;
