@@ -11,3 +11,8 @@ The code is based on the TreeViewEx project on CodePlex (http://treeviewex.codep
 The current development status is considered usable, there are no known major bugs or missing parts that need to be fixed. The included test cases are outdated and likely won't work anymore. To play with the control and its features, you can run the Demo application from the solution.
 
 You can also install this package from NuGet: https://www.nuget.org/packages/MultiSelectTreeView
+
+# Fixes
+- I fixed crashing issues when the SelectedItems property is null, most likely because nothing is bound to it
+- Improved performance for recursive functions (mainly the recursive functions that scan the entire tree)
+- Probably more but I kinda forgot; the latest commits are the collective of what I changed over the past few months while using the original library
